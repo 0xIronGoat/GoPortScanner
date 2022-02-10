@@ -3,14 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"golang.org/x/sync/semaphore"
 	"net"
 	"os/exec"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-
-	"golang.org/x/sync/semaphore"
 )
 
 type PortScanner struct {
@@ -48,7 +47,10 @@ func ScanPort(ip string, port int, timeout time.Duration) {
 		return
 	}
 
-	conn.Close()
+	connErr := conn.Close()
+	if connErr != nil {
+		return
+	}
 	fmt.Println(port, "open")
 }
 
@@ -57,7 +59,10 @@ func (ps *PortScanner) Start(f, l int, timeout time.Duration) {
 	defer wg.Wait()
 
 	for port := f; port <= l; port++ {
-		ps.lock.Acquire(context.TODO(), 1)
+		lockErr := ps.lock.Acquire(context.TODO(), 1)
+		if lockErr != nil {
+			return
+		}
 		wg.Add(1)
 		go func(port int) {
 			defer ps.lock.Release(1)
