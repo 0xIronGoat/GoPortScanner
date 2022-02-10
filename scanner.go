@@ -47,8 +47,8 @@ func ScanPort(ip string, port int, timeout time.Duration) {
 		return
 	}
 
-	connErr := conn.Close()
-	if connErr != nil {
+	connCloseErr := conn.Close()
+	if connCloseErr != nil {
 		return
 	}
 	fmt.Println(port, "open")
@@ -59,8 +59,8 @@ func (ps *PortScanner) Start(f, l int, timeout time.Duration) {
 	defer wg.Wait()
 
 	for port := f; port <= l; port++ {
-		lockErr := ps.lock.Acquire(context.TODO(), 1)
-		if lockErr != nil {
+		lockGetErr := ps.lock.Acquire(context.TODO(), 1)
+		if lockGetErr != nil {
 			return
 		}
 		wg.Add(1)
